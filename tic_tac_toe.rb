@@ -18,12 +18,13 @@ end
 
 class Board
   attr_accessor :grid
+  
   def initialize
     @grid = default_grid
-    @empty_value = '-'
   end
 
   def default_grid
+    empty_value = '-'
     Array.new(3) { Array.new(3) {"#{empty_value}"} }
   end
 
@@ -63,36 +64,79 @@ class Board
     grid[x][y] = player.color
   end
 
+  def check_winner
+    if check_rows || check_columns || check_diagonal
+      return true
+    end
+    false
+  end
+
   def check_draw
-    draw = true
     grid.each do |x|
       x.each do |y|
-    end 
+        return false if y == '-'
+      end
+    end
+    true
   end
+
+  private
+
+  def check_rows
+    grid.each do |x|
+      return true if (x.uniq.size == 1) && (x.uniq[0] != '-')
+    end
+    false
+  end
+
+  def check_diagonal
+    diagonal1 = [grid[0][0], grid[1][1], grid[2][2]]
+    diagonal2 = [grid[0][2], grid[1][1], grid[2][0]]
+    return true if (diagonal1.uniq.size == 1) && (diagonal1.uniq[0] != '-')
+
+    return true if (diagonal2.uniq.size == 1) && (diagonal2.uniq[0] != '-')
+
+    false
+  end
+
+  def check_columns
+    for i in 0..2 do
+      test_arr = []
+      grid.each {|x| test_arr.push(x[i])}
+      return true if (test_arr.uniq.size == 1) && (test_arr.uniq[0] != '-')
+    end
+    false
+  end
+
 end
 
-def main()
-  puts 'Welcome to Tic Tac Toe!'
-  Max = Player.new('X', 'Max')
-  Meg = Player.new('0', 'Meg')
-  board = Board.new
-  board.display_board
 
-  while true do
-    print "#{Max.name}, it's your turn! Enter your move: "
-    board.update_board(Max, board.map_move(gets.chomp))
-    board.display_board
-    if board.check_winner
-      puts "#{Max.name} won!!!"
-      break
-    end
-    if board.check_draw
-      puts "It's a draw!!"
-      break
-    end
-    
-    print "#{Meg.name}, it's your turn! Enter your move: "
-    board.update_board(Meg, board.map_move(gets.chomp))
-    board.display_board
+puts 'Welcome to Tic Tac Toe!'
+Max = Player.new('X', 'Max')
+Meg = Player.new('0', 'Meg')
+board = Board.new
+board.display_board
+while true do
+  print "#{Max.name}, it's your turn! Enter your move: "
+  board.update_board(Max, board.map_move(gets.chomp))
+  board.display_board
+  if board.check_winner
+    puts "#{Max.name} won!!!"
+    break
+  end
+  if board.check_draw
+    puts "It's a draw!!"
+    break
+  end
+  print "#{Meg.name}, it's your turn! Enter your move: "
+  board.update_board(Meg, board.map_move(gets.chomp))
+  board.display_board
+  if board.check_winner
+    puts "#{Meg.name} won!!!"
+    break
+  end
+  if board.check_draw
+    puts "It's a draw!!"
+    break
   end
 end
