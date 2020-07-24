@@ -1,11 +1,17 @@
 require 'pry'
 require 'pp'
 
-class Cell
-  attr_accessor :value
-  def initialize(value = '')
-    @value = value
+class Game
+  attr_accessor :p1, :p2, :board
+
+  def initialize(players, board)
+    @p1 = players[0]
+    @p2 = players[1]
+    @board = board
   end
+
+
+
 end
 
 class Player
