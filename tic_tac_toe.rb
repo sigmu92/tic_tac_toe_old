@@ -2,15 +2,52 @@ require 'pry'
 require 'pp'
 
 class Game
-  attr_accessor :p1, :p2, :board
+  attr_accessor :board
 
-  def initialize(players, board)
-    @p1 = players[0]
-    @p2 = players[1]
+  def initialize(board)
     @board = board
   end
 
 
+  def turn(player)
+    pick = take_input(player)
+    until validate_input(pick)
+      board.display_board
+      pick = take_input(player)
+    end
+    board.update_board(player,board.map_move(pick))
+    board.display_board
+  end
+
+  
+  def take_input(player)
+    print "#{player.name}, it's your turn! Enter your move: "
+    input = gets.chomp.to_i
+  end
+
+  def evaluate?(player)
+    if board.check_winner?
+      puts "#{player.name} won!!!"
+      return true
+    elsif board.check_draw?
+      puts "It's a draw!"
+      return true      
+    else
+      false
+    end
+  end
+
+  private
+
+  def validate_input(input)
+    if ![1, 2, 3, 4, 5, 6, 7, 8, 9].include?(input) || !board.valid_move?(input)
+      puts ''
+      puts '***Invalid entry, try again!***'
+      puts ''
+      return false
+    end
+    return true
+  end
 
 end
 
@@ -63,21 +100,30 @@ class Board
       [2, 2]
     end
   end
+  
+  def valid_move?(input)
+    cell = map_move(input)
+    x = cell[0]
+    y = cell[1]
+    return true if grid[x][y] == '-'
+    false
+  end
 
   def update_board(player, cell)
     x = cell[0]
     y = cell[1]
     grid[x][y] = player.color
+    
   end
 
-  def check_winner
-    if check_rows || check_columns || check_diagonal
+  def check_winner?
+    if check_rows? || check_columns? || check_diagonal?
       return true
     end
     false
   end
 
-  def check_draw
+  def check_draw?
     grid.each do |x|
       x.each do |y|
         return false if y == '-'
@@ -88,14 +134,14 @@ class Board
 
   private
 
-  def check_rows
+  def check_rows?
     grid.each do |x|
       return true if (x.uniq.size == 1) && (x.uniq[0] != '-')
     end
     false
   end
 
-  def check_diagonal
+  def check_diagonal?
     diagonal1 = [grid[0][0], grid[1][1], grid[2][2]]
     diagonal2 = [grid[0][2], grid[1][1], grid[2][0]]
     return true if (diagonal1.uniq.size == 1) && (diagonal1.uniq[0] != '-')
@@ -105,7 +151,7 @@ class Board
     false
   end
 
-  def check_columns
+  def check_columns?
     for i in 0..2 do
       test_arr = []
       grid.each {|x| test_arr.push(x[i])}
@@ -118,31 +164,19 @@ end
 
 
 puts 'Welcome to Tic Tac Toe!'
-Max = Player.new('X', 'Max')
-Meg = Player.new('0', 'Meg')
+puts "Enter the name of player 1: "
+p1 = Player.new('X', gets.chomp)
+puts "Enter the name of player 2: "
+p2 = Player.new('0', gets.chomp)
 board = Board.new
-board.display_board
+game = Game.new(board)
 while true do
-  print "#{Max.name}, it's your turn! Enter your move: "
-  board.update_board(Max, board.map_move(gets.chomp))
-  board.display_board
-  if board.check_winner
-    puts "#{Max.name} won!!!"
+  game.turn(p1)
+  if game.evaluate?(p1)
     break
   end
-  if board.check_draw
-    puts "It's a draw!!"
-    break
-  end
-  print "#{Meg.name}, it's your turn! Enter your move: "
-  board.update_board(Meg, board.map_move(gets.chomp))
-  board.display_board
-  if board.check_winner
-    puts "#{Meg.name} won!!!"
-    break
-  end
-  if board.check_draw
-    puts "It's a draw!!"
+  game.turn(p2)
+  if game.evaluate?(p2)
     break
   end
 end
